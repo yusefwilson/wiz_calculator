@@ -14,33 +14,17 @@ tk.Label(stats_frame, text="Player Damage:", font=('Arial', 18)).grid(row=0, col
 player_damage = tk.Entry(stats_frame, width=10, borderwidth=5, font=('Arial', 18))
 player_damage.grid(row=0, column=1, padx=10, pady=5)
 
-tk.Label(stats_frame, text="Player Resist:", font=('Arial', 18)).grid(row=1, column=0, padx=10, pady=5, sticky='e')
-player_resist = tk.Entry(stats_frame, width=10, borderwidth=5, font=('Arial', 18))
-player_resist.grid(row=1, column=1, padx=10, pady=5)
-
-tk.Label(stats_frame, text="Player Pierce:", font=('Arial', 18)).grid(row=2, column=0, padx=10, pady=5, sticky='e')
+tk.Label(stats_frame, text="Player Pierce:", font=('Arial', 18)).grid(row=1, column=0, padx=10, pady=5, sticky='e')
 player_pierce = tk.Entry(stats_frame, width=10, borderwidth=5, font=('Arial', 18))
-player_pierce.grid(row=2, column=1, padx=10, pady=5)
+player_pierce.grid(row=1, column=1, padx=10, pady=5)
 
-tk.Label(stats_frame, text="Player Crit Multiplier:", font=('Arial', 18)).grid(row=3, column=0, padx=10, pady=5, sticky='e')
+tk.Label(stats_frame, text="Player Crit Multiplier:", font=('Arial', 18)).grid(row=2, column=0, padx=10, pady=5, sticky='e')
 player_crit_multiplier = tk.Entry(stats_frame, width=10, borderwidth=5, font=('Arial', 18))
-player_crit_multiplier.grid(row=3, column=1, padx=10, pady=5)
-
-tk.Label(stats_frame, text="Enemy Damage:", font=('Arial', 18)).grid(row=0, column=2, padx=10, pady=5, sticky='e')
-enemy_damage = tk.Entry(stats_frame, width=10, borderwidth=5, font=('Arial', 18))
-enemy_damage.grid(row=0, column=3, padx=10, pady=5)
+player_crit_multiplier.grid(row=2, column=1, padx=10, pady=5)
 
 tk.Label(stats_frame, text="Enemy Resist:", font=('Arial', 18)).grid(row=1, column=2, padx=10, pady=5, sticky='e')
 enemy_resist = tk.Entry(stats_frame, width=10, borderwidth=5, font=('Arial', 18))
 enemy_resist.grid(row=1, column=3, padx=10, pady=5)
-
-tk.Label(stats_frame, text="Enemy Pierce:", font=('Arial', 18)).grid(row=2, column=2, padx=10, pady=5, sticky='e')
-enemy_pierce = tk.Entry(stats_frame, width=10, borderwidth=5, font=('Arial', 18))
-enemy_pierce.grid(row=2, column=3, padx=10, pady=5)
-
-tk.Label(stats_frame, text="Enemy Crit Multiplier:", font=('Arial', 18)).grid(row=3, column=2, padx=10, pady=5, sticky='e')
-enemy_crit_multiplier = tk.Entry(stats_frame, width=10, borderwidth=5, font=('Arial', 18))
-enemy_crit_multiplier.grid(row=3, column=3, padx=10, pady=5)
 
 # hanging effects frame
 effects_frame = tk.Frame(root)
@@ -123,12 +107,17 @@ tk.Label(spell_frame, text="Spell Damage:", font=('Arial', 18)).grid(row=0, colu
 spell_damage = tk.Entry(spell_frame, width=10, borderwidth=5, font=('Arial', 18))
 spell_damage.grid(row=0, column=1, padx=10, pady=5)
 
+# create entry for actual damage
+tk.Label(spell_frame, text="Actual Damage:", font=('Arial', 18)).grid(row=0, column=2, padx=10, pady=5, sticky='e')
+actual_damage = tk.Entry(spell_frame, width=10, borderwidth=5, font=('Arial', 18))
+actual_damage.grid(row=0, column=3, padx=10, pady=5)
+
 # frame for display, calculate and clear buttons
 button_frame = tk.Frame(root)
 button_frame.grid(row=3, column=0, padx=10, pady=10)
 
 # creat entry for display, and buttons for calculating and clearing
-display = tk.Entry(button_frame, width=40, borderwidth=5, font=('Arial', 18))
+display = tk.Entry(button_frame, width=80, borderwidth=5, font=('Arial', 18))
 display.grid(row=0, column=0, columnspan=3, padx=10, pady=5)
 
 button_calculate = tk.Button(button_frame, text="Calculate", padx=10, pady=5, command=lambda: calculate())
@@ -137,11 +126,11 @@ button_calculate.grid(row=1, column=0, padx=10, pady=5)
 button_clear = tk.Button(button_frame, text="Clear", padx=10, pady=5, command=lambda: clear())
 button_clear.grid(row=1, column=1, padx=10, pady=5)
 
-button_hitter = tk.Button(button_frame, text="Player", padx=10, pady=5, bg="green", command=lambda: toggle_player_hitting(button_hitter))
-button_hitter.grid(row=1, column=2, padx=10, pady=5)
+button_calculation_type = tk.Button(button_frame, text="Damage", padx=10, pady=5, bg="green", command=lambda: toggle_calculation_type(button_calculation_type))
+button_calculation_type.grid(row=1, column=2, padx=10, pady=5)
 
 # state variable for who is hitting
-player_hitting = True
+calculating_damage = True
 
 # state variables for effects
 buffs = []
@@ -179,14 +168,15 @@ def add_weakness(button, weakness):
     else:
         weaknesses.append(weakness)
 
-def toggle_player_hitting(hitter_button):
+def toggle_calculation_type(hitter_button):
+
     toggle_button_color(hitter_button)
-    global player_hitting
-    player_hitting = not player_hitting
-    if player_hitting:
-        button_hitter.config(text="Player")
+    global calculating_damage
+    calculating_damage = not calculating_damage
+    if calculating_damage:
+        button_calculation_type.config(text="Damage")
     else:
-        button_hitter.config(text="Enemy")
+        button_calculation_type.config(text="Resist")
 
 # clear all state variables, reset all button colors to red, clear all entries, clear display
 def clear():
@@ -206,69 +196,101 @@ def clear():
         button.config(bg="red")
 
     player_damage.delete(0, tk.END)
-    player_resist.delete(0, tk.END)
     player_pierce.delete(0, tk.END)
     player_crit_multiplier.delete(0, tk.END)
-    enemy_damage.delete(0, tk.END)
     enemy_resist.delete(0, tk.END)
-    enemy_pierce.delete(0, tk.END)
-    enemy_crit_multiplier.delete(0, tk.END)
     spell_damage.delete(0, tk.END)
 
     display.delete(0, tk.END)
 
+# utilities for damage calculations
+
+# ALL SHIELDS ARE PASSED AS THEIR INTEGER VALUES (e.g. 20% is passed as 20).
+def shields_to_effective_shields(shields: list[float], pierce: float) -> tuple[list[float],float]:
+    current_pierce = pierce
+    effective_shields = []
+    for shield in shields:
+        if shield <= current_pierce:
+            current_pierce -= shield
+        else: #shield is strictly greater than pierce
+            effective_shields.append(shield - current_pierce)
+            current_pierce = 0
+    return effective_shields, current_pierce
+
+# ALL DEBUFFS ARE PASSED AS THEIR INTEGER VALUES (e.g. 20% is passed as 20).
+def damage_after_debuffs(damage: float, debuffs: list[float]) -> float:
+    total_debuff = 1
+    for debuff in debuffs:
+        total_debuff *= (1 - debuff / 100)
+    return damage * total_debuff
+
+# ALL BUFFS ARE PASSED AS THEIR INTEGER VALUES (e.g. 20% is passed as 20).
+def damage_after_buffs(damage: float, buffs: list[float]) -> float:
+    total_buff = 1
+    for buff in buffs:
+        total_buff *= (1 + buff / 100)
+    return damage * total_buff
+
 # ALL HANGING EFFECTS ARE PASSED AS THEIR INTEGER VALUES (e.g. 20% is passed as 20).
 # RETURNS: A tuple containing the final damage and the final critical damage respectively.
 def damage_calculation(spell_damage: int, buffs: list[float], pierce: float, shields: list[float], weaknesses: list[float], crit_multiplier: float, enemy_resist: float) -> tuple[float]:
-    # calculate the total damage multiplier
-    total_buffs = 1
-    for buff in buffs:
-        total_buffs *= 1 + buff / 100
-    total_shields = sum(shields)
+    
+    buffed_damage = damage_after_buffs(spell_damage, buffs)
 
-    # calculate the effective resists
-    effective_resist = 0
-    if pierce > total_shields:
-        effective_resist = max(0,enemy_resist - (pierce - total_shields))
+    damage_after_weaknesses = damage_after_debuffs(buffed_damage, weaknesses)
 
-    effective_resist /= 100
+    effective_shields, remaining_pierce = shields_to_effective_shields(shields, pierce)
 
-    # apply weaknesses
-    for weakness in weaknesses:
-        total_buffs *= (1 - weakness / 100)
+    damage_after_shields = damage_after_debuffs(damage_after_weaknesses, effective_shields)
 
-    # calculate the final damage
-    final_damage = spell_damage * total_buffs * (1 - effective_resist)
+    effective_resist = max(enemy_resist - remaining_pierce, 0)
 
-    return (final_damage, final_damage * crit_multiplier)
+    damage = damage_after_shields * (1 - effective_resist / 100)
+
+    crit_damage = damage * crit_multiplier
+
+    return damage, crit_damage
+
+def resist_calculation(spell_damage: int, buffs: list[float], pierce: float, shields: list[float], weaknesses: list[float], crit_multiplier: float, actual_damage: float) -> tuple[float]:
+    
+    buffed_damage = damage_after_buffs(spell_damage, buffs) * crit_multiplier
+
+    damage_after_weaknesses = damage_after_debuffs(buffed_damage, weaknesses)
+
+    effective_shields, remaining_pierce = shields_to_effective_shields(shields, pierce)
+
+    damage_after_shields = damage_after_debuffs(damage_after_weaknesses, effective_shields)
+
+    effective_resist = -100 * (actual_damage / damage_after_shields - 1)
+
+    maximum_potential_resist = effective_resist + remaining_pierce
+
+    return effective_resist, maximum_potential_resist
 
 def calculate():
     new_hitter_damage, new_pierce, new_crit_multiplier, new_enemy_resist = 0, 0, 1, 0
 
-    if player_hitting:
-        new_hitter_damage = float(player_damage.get()) if player_damage.get() else 0
-        new_pierce = float(player_pierce.get()) if player_pierce.get() else 0
-        new_crit_multiplier = (1 + float(player_crit_multiplier.get()) / 100) if player_crit_multiplier.get() else 1
-        new_enemy_resist = float(enemy_resist.get()) if enemy_resist.get() else 0
-
-    else:
-        new_hitter_damage = float(enemy_damage.get()) if enemy_damage.get() else 0
-        new_pierce = float(enemy_pierce.get()) if enemy_pierce.get() else 0
-        new_crit_multiplier = (1 + float(enemy_crit_multiplier.get()) / 100) if enemy_crit_multiplier.get() else 1
-        new_enemy_resist = float(player_resist.get()) if player_resist.get() else 0
+    new_hitter_damage = float(player_damage.get()) if player_damage.get() else 0
+    new_pierce = float(player_pierce.get()) if player_pierce.get() else 0
+    new_crit_multiplier = (1 + float(player_crit_multiplier.get()) / 100) if player_crit_multiplier.get() else 1
+    new_enemy_resist = float(enemy_resist.get()) if enemy_resist.get() else 0
 
     new_spell_damage = float(spell_damage.get()) if spell_damage.get() else 0
-    new_buffs = buffs + [100 + new_hitter_damage] if new_hitter_damage > 0 else buffs
+    new_actual_damage = float(actual_damage.get()) if actual_damage.get() else 0
+    new_buffs = buffs + [new_hitter_damage] if new_hitter_damage > 0 else buffs
     new_shields = shields
     new_weaknesses = weaknesses
     
-
     print('buffs:', new_buffs, 'shields:', new_shields, 'weaknesses:', new_weaknesses, 'pierce:', new_pierce, 'crit_multiplier:', new_crit_multiplier, 'enemy_resist:', new_enemy_resist, 'spell_damage:', new_spell_damage)
-
-    damage, crit_damage = damage_calculation(new_spell_damage, new_buffs, new_pierce, new_shields, new_weaknesses, new_crit_multiplier, new_enemy_resist)
-
+    
     display.delete(0, tk.END)
-    display.insert(0, f"Damage: {round(damage, 2)}, Critical Damage: {round(crit_damage, 2)}")
-
+    
+    if calculating_damage:
+        damage, crit_damage = damage_calculation(new_spell_damage, new_buffs, new_pierce, new_shields, new_weaknesses, new_crit_multiplier, new_enemy_resist)
+        display.insert(0, f"Damage: {round(damage, 2)}, Critical Damage: {round(crit_damage, 2)}")
+    else:
+        effective_resist, maximum_potential_resist = resist_calculation(new_spell_damage, new_buffs, new_pierce, new_shields, new_weaknesses, new_crit_multiplier, new_actual_damage)
+        display.insert(0, f"Effective Resist: {round(effective_resist, 2)}, Maximum Potential Resist: {round(maximum_potential_resist, 2)}")
+    
 # Run the application
 root.mainloop()
